@@ -54,11 +54,10 @@ config = {
     "y": None
 }
 
-
 if os.path.exists(CONFIG_FILE):
     try:
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-        config.update(json.load(f))
+            config.update(json.load(f))
     except Exception:
         pass
 
@@ -83,7 +82,7 @@ def carregar_palavras():
                 if palavra:
                     palavras.append(palavra)
 
-            # Remove duplicadas mantendo a ordem
+            # Remove palavras duplicadas
             palavras = list(dict.fromkeys(palavras))
 
             return palavras
@@ -97,7 +96,7 @@ palavras = carregar_palavras()
 
 
 # ============================================================
-# REMOVER ACENTOS PARA PESQUISA
+# REMOVER ACENTOS
 # ============================================================
 
 def remover_acentos(texto):
@@ -158,7 +157,7 @@ status.pack(pady=3)
 
 
 # ============================================================
-# BOTÃO GRAVAR POSIÇÃO
+# GRAVAR POSIÇÃO
 # ============================================================
 
 def gravar_posicao():
@@ -233,7 +232,7 @@ botao_gravar.pack(
 
 
 # ============================================================
-# CAMPO DE PALAVRA
+# CAMPO DE PESQUISA
 # ============================================================
 
 label_palavra = tk.Label(
@@ -290,7 +289,10 @@ def atualizar_lista(event=None):
 
     prefixo = entrada.get().strip().lower()
 
-    lista.delete(0, tk.END)
+    lista.delete(
+        0,
+        tk.END
+    )
 
     if not prefixo:
         return
@@ -302,14 +304,19 @@ def atualizar_lista(event=None):
 
     for palavra in palavras:
 
-        # Mantém a palavra original com seus acentos
+        # Mantém a palavra original
+        # e remove acentos somente para comparar
         palavra_busca = remover_acentos(
             palavra.lower()
         )
 
-        if palavra_busca.startswith(prefixo_busca):
+        if palavra_busca.startswith(
+            prefixo_busca
+        ):
 
-            encontrados.append(palavra)
+            encontrados.append(
+                palavra
+            )
 
             if len(encontrados) >= 30:
                 break
@@ -322,7 +329,6 @@ def atualizar_lista(event=None):
         )
 
 
-# Atualiza enquanto digita
 entrada.bind(
     "<KeyRelease>",
     atualizar_lista
@@ -341,7 +347,7 @@ def enviar_palavra(
 
     try:
 
-        # Verifica se existe posição gravada
+        # Verifica posição
         if (
             config["x"] is None
             or config["y"] is None
@@ -356,7 +362,6 @@ def enviar_palavra(
 
             return
 
-
         # ----------------------------------------------------
         # COPIAR PALAVRA
         # ----------------------------------------------------
@@ -366,7 +371,6 @@ def enviar_palavra(
         )
 
         time.sleep(0.03)
-
 
         # ----------------------------------------------------
         # IR PARA O CAMPO GRAVADO
@@ -379,7 +383,6 @@ def enviar_palavra(
 
         time.sleep(0.05)
 
-
         # ----------------------------------------------------
         # CLICAR NO CAMPO
         # ----------------------------------------------------
@@ -389,7 +392,6 @@ def enviar_palavra(
         )
 
         time.sleep(0.05)
-
 
         # ----------------------------------------------------
         # COLAR
@@ -405,7 +407,6 @@ def enviar_palavra(
 
         time.sleep(0.05)
 
-
         # ----------------------------------------------------
         # ENTER
         # ----------------------------------------------------
@@ -416,16 +417,14 @@ def enviar_palavra(
 
         time.sleep(0.08)
 
-
         # ----------------------------------------------------
-        # VOLTAR PARA ONDE CLICOU
+        # VOLTAR PARA A SUGESTÃO
         # ----------------------------------------------------
 
         mouse_controller.position = (
             retorno_x,
             retorno_y
         )
-
 
         # ----------------------------------------------------
         # STATUS
@@ -437,7 +436,6 @@ def enviar_palavra(
                 text=f"Enviado: {palavra}"
             )
         )
-
 
     except Exception as e:
 
@@ -469,11 +467,7 @@ def selecionar(event=None):
         selecao[0]
     )
 
-
-    # --------------------------------------------------------
-    # PEGA A POSIÇÃO EXATA DO MOUSE
-    # --------------------------------------------------------
-
+    # Pega a posição atual do mouse
     posicao_retorno = (
         mouse_controller.position
     )
@@ -481,11 +475,7 @@ def selecionar(event=None):
     retorno_x = posicao_retorno[0]
     retorno_y = posicao_retorno[1]
 
-
-    # --------------------------------------------------------
-    # LIMPA A PESQUISA
-    # --------------------------------------------------------
-
+    # Limpa pesquisa
     entrada.delete(
         0,
         tk.END
@@ -496,11 +486,7 @@ def selecionar(event=None):
         tk.END
     )
 
-
-    # --------------------------------------------------------
-    # ENVIA EM OUTRA THREAD
-    # --------------------------------------------------------
-
+    # Envia em segundo plano
     threading.Thread(
         target=enviar_palavra,
         args=(
@@ -512,7 +498,6 @@ def selecionar(event=None):
     ).start()
 
 
-# Clique na palavra
 lista.bind(
     "<ButtonRelease-1>",
     selecionar
@@ -520,7 +505,7 @@ lista.bind(
 
 
 # ============================================================
-# ENTER TAMBÉM ENVIA
+# ENTER PARA ENVIAR
 # ============================================================
 
 def enviar_com_enter(event=None):
@@ -541,7 +526,7 @@ lista.bind(
 
 
 # ============================================================
-# ESC LIMPA A PESQUISA
+# ESC PARA LIMPAR
 # ============================================================
 
 def limpar(event=None):
@@ -564,7 +549,7 @@ entrada.bind(
 
 
 # ============================================================
-# INFORMAÇÃO DE PALAVRAS
+# STATUS INICIAL
 # ============================================================
 
 if len(palavras) > 0:
@@ -601,5 +586,4 @@ root.protocol(
 
 entrada.focus_set()
 
-root.mainloop()	
-
+root.mainloop()
