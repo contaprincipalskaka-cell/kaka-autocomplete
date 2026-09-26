@@ -569,26 +569,3 @@ root.protocol(
 entrada.focus_set()
 
 root.mainloop()
-
-E tem uma mudança importante no "build.yml"
-
-Agora vamos mandar o "palavras.txt" para dentro do ".exe" durante a compilação. Assim você não precisa ficar levando o arquivo separado.
-
-No "build.yml", troque somente a parte de Criar EXE para:
-
-        - name: Criar EXE
-          run: |
-            pyinstaller --onefile --windowed --add-data "palavras.txt;." --name KAKA_AUTOCOMPLETE autocomplete.py
-
-O restante do "build.yml" pode continuar igual.
-
-Depois:
-
-cd ~/kaka-autocomplete
-git add autocomplete.py .github/workflows/build.yml
-git commit -m "Nova interface de autocomplete"
-git push
-
-Aí o GitHub vai gerar o novo ".exe".
-
-Essa versão não depende mais de capturar o teclado globalmente. Você escreve o prefixo na própria caixa "Palavra", e as sugestões vão atualizando instantaneamente.
