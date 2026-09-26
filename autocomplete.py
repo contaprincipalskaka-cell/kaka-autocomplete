@@ -6,24 +6,23 @@ import json
 import os
 import time
 
+CONFIG_FILE = "config.json"
+WORDS_FILE = "palavras.txt"
+
 # ============================================================
 # CONFIGURAÇÃO
 # ============================================================
-
-CONFIG_FILE = "config.json"
-WORDS_FILE = "palavras.txt"
 
 config = {
     "x": None,
     "y": None
 }
 
-# Carrega configuração salva
 if os.path.exists(CONFIG_FILE):
     try:
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             config.update(json.load(f))
-    except Exception:
+    except:
         pass
 
 
@@ -42,7 +41,6 @@ def carregar_palavras():
             if linha.strip()
         ]
 
-    # Remove duplicadas
     return list(dict.fromkeys(palavras))
 
 
@@ -54,23 +52,10 @@ palavras = carregar_palavras()
 # ============================================================
 
 texto = ""
-
 gravando_posicao = False
 
 mouse_controller = mouse.Controller()
 keyboard_controller = keyboard.Controller()
-
-
-# ============================================================
-# SALVAR CONFIGURAÇÃO
-# ============================================================
-
-def salvar_config():
-    try:
-        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=4)
-    except Exception as e:
-        print("Erro ao salvar configuração:", e)
 
 
 # ============================================================
@@ -79,12 +64,9 @@ def salvar_config():
 
 root = tk.Tk()
 
-root.title("KAKA Autocomplete")
-
-root.geometry("420x500")
-
+root.title("KAKA AUTOCOMPLETE")
+root.geometry("430x520")
 root.resizable(False, False)
-
 root.attributes("-topmost", True)
 
 
@@ -95,15 +77,19 @@ root.attributes("-topmost", True)
 titulo = tk.Label(
     root,
     text="KAKA AUTOCOMPLETE",
-    font=("Arial", 18, "bold")
+    font=("Arial", 20, "bold")
 )
 
-titulo.pack(pady=15)
+titulo.pack(pady=(15, 5))
 
+
+# ============================================================
+# STATUS
+# ============================================================
 
 status = tk.Label(
     root,
-    text="Pronto.",
+    text="Pronto para configurar.",
     font=("Arial", 10)
 )
 
@@ -111,25 +97,7 @@ status.pack(pady=5)
 
 
 # ============================================================
-# LISTA DE SUGESTÕES
-# ============================================================
-
-lista = tk.Listbox(
-    root,
-    font=("Arial", 16),
-    height=15
-)
-
-lista.pack(
-    fill="both",
-    expand=True,
-    padx=20,
-    pady=10
-)
-
-
-# ============================================================
-# GRAVAR POSIÇÃO
+# BOTÃO GRAVAR POSIÇÃO
 # ============================================================
 
 def gravar_posicao():
@@ -139,7 +107,7 @@ def gravar_posicao():
     gravando_posicao = True
 
     status.config(
-        text="Clique no campo onde a palavra será colocada..."
+        text="AGORA CLIQUE NO CAMPO DE ENVIO..."
     )
 
     def capturar(x, y, button, pressed):
@@ -151,14 +119,18 @@ def gravar_posicao():
             config["x"] = x
             config["y"] = y
 
-            salvar_config()
+            try:
+                with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                    json.dump(config, f, indent=4)
+            except:
+                pass
 
             gravando_posicao = False
 
             root.after(
                 0,
                 lambda: status.config(
-                    text=f"Posição salva: {x}, {y}"
+                    text=f"Posição salva! X={x} Y={y}"
                 )
             )
 
@@ -171,41 +143,54 @@ def gravar_posicao():
     listener.start()
 
 
-# ============================================================
-# BOTÃO GRAVAR
-# ============================================================
-
 botao_gravar = tk.Button(
     root,
     text="🎯 GRAVAR POSIÇÃO",
-    font=("Arial", 12, "bold"),
-    command=gravar_posicao
+    font=("Arial", 13, "bold"),
+    command=gravar_posicao,
+    height=2
 )
 
 botao_gravar.pack(
     fill="x",
-    padx=20,
+    padx=25,
     pady=10
 )
 
 
 # ============================================================
-# ATUALIZAR LISTA
+# LISTA
+# ============================================================
+
+lista = tk.Listbox(
+    root,
+    font=("Arial", 16),
+    height=15,
+    activestyle="none"
+)
+
+lista.pack(
+    fill="both",
+    expand=True,
+    padx=25,
+    pady=10
+)
+
+
+# ============================================================
+# ATUALIZAR SUGESTÕES
 # ============================================================
 
 def atualizar_lista():
 
-    lista.delete(
-        0,
-        tk.END
-    )
+    lista.delete(0, tk.END)
 
     if not texto:
         return
 
-    encontrados = []
-
     prefixo = texto.lower()
+
+    encontrados = []
 
     for palavra in palavras:
 
@@ -217,19 +202,14 @@ def atualizar_lista():
                 break
 
     for palavra in encontrados:
-
-        lista.insert(
-            tk.END,
-            palavra
-        )
+        lista.insert(tk.END, palavra)
 
     if encontrados:
-
         lista.selection_set(0)
 
 
 # ============================================================
-# LIMPAR
+# LIMPAR PREFIXO
 # ============================================================
 
 def limpar():
@@ -255,7 +235,7 @@ def enviar_palavra(palavra):
         root.after(
             0,
             lambda: status.config(
-                text="Grave primeiro a posição!"
+                text="Primeiro grave a posição!"
             )
         )
 
@@ -268,7 +248,7 @@ def enviar_palavra(palavra):
 
         time.sleep(0.01)
 
-        # Move o mouse para o campo
+        # Move para o campo configurado
         mouse_controller.position = (
             config["x"],
             config["y"]
@@ -276,14 +256,14 @@ def enviar_palavra(palavra):
 
         time.sleep(0.01)
 
-        # Clique no campo
+        # Clica no campo
         mouse_controller.click(
             mouse.Button.left
         )
 
         time.sleep(0.01)
 
-        # CTRL + V
+        # Cola
         with keyboard_controller.pressed(
             keyboard.Key.ctrl
         ):
@@ -291,7 +271,7 @@ def enviar_palavra(palavra):
 
         time.sleep(0.01)
 
-        # ENTER
+        # Envia
         keyboard_controller.press(
             keyboard.Key.enter
         )
@@ -309,24 +289,20 @@ def enviar_palavra(palavra):
 
 
 # ============================================================
-# SELECIONAR SUGESTÃO
+# CLICAR NA SUGESTÃO
 # ============================================================
 
 def selecionar(event=None):
 
-    if lista.size() == 0:
-        return
-
     selecao = lista.curselection()
 
     if not selecao:
-        selecao = (0,)
+        return
 
     palavra = lista.get(
         selecao[0]
     )
 
-    # Envia em outra thread para não travar a interface
     threading.Thread(
         target=enviar_palavra,
         args=(palavra,),
@@ -389,6 +365,13 @@ def tecla_pressionada(key):
 
             return
 
+        # Enter
+        if key == keyboard.Key.enter:
+
+            limpar()
+
+            return
+
         # ESC
         if key == keyboard.Key.esc:
 
@@ -396,13 +379,12 @@ def tecla_pressionada(key):
 
             return
 
-    except Exception as e:
-
-        print("Erro no teclado:", e)
+    except:
+        pass
 
 
 # ============================================================
-# INICIAR MONITORAMENTO GLOBAL
+# LISTENER GLOBAL
 # ============================================================
 
 keyboard_listener = keyboard.Listener(
@@ -433,13 +415,13 @@ root.protocol(
 
 
 # ============================================================
-# INFORMAÇÕES
+# STATUS INICIAL
 # ============================================================
 
 if config["x"] is not None:
 
     status.config(
-        text=f"Posição salva: {config['x']}, {config['y']}"
+        text=f"Posição salva: {config['x']} , {config['y']}"
     )
 
 else:
@@ -450,7 +432,8 @@ else:
 
 
 # ============================================================
-# INICIAR PROGRAMA
+# INICIAR
 # ============================================================
 
-root.mainloop()
+root.mainloop()	
+
