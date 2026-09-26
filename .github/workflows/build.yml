@@ -24,8 +24,7 @@ jobs:
 
       - name: Criar EXE
         run: |
-          pyinstaller --onefile --windowed --name KAKA_AUTOCOMPLETE autocomplete.py
-
+          pyinstaller --onefile --windowed --add-data "palavras.txt;." --name KAKA_AUTOCOMPLETE autocomplete.py
       - name: Disponibilizar EXE
         uses: actions/upload-artifact@v4
         with:
