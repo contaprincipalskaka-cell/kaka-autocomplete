@@ -1,3 +1,35 @@
+aparador
+Alicate
+botão
+Bule
+bomba
+Bíblia
+borrifador
+buquê
+balaio
+coroa
+capa
+Caixa de ferramentas
+carrinho de rolimã
+carregador de celular
+dado
+espelho
+espartilho
+fusível
+fuzil
+gangorra
+guardanapo
+guitarra
+tatame
+jornal
+jardineira
+jardineiro
+arca
+barco
+jarro
+Janela
+jarra
+porta-lápis
 pato
 prato
 porta
@@ -16,4 +48,198 @@ pipoca
 ponte
 ponto
 pote
-potato
+livro
+Panela de pressão
+raquete elétrica
+balsa
+grampo de cabelo
+mesa
+cadeira
+enxada
+caixote
+pasta
+cama
+vasilha
+estante
+bumerangue
+Bambolê
+banqueta
+banco
+chave de boca
+chave
+boca
+exaustor
+brinco
+trampolim
+secador de cabelo
+prego
+Violão
+bandeira
+mochila
+bolero
+burca
+chave inglesa
+caneta
+canga
+Confete
+crachá
+cadarço
+carrinho de mão
+aerofólio
+biquíni
+tábua
+paletó
+terno
+Relógio de pulso
+Relógio
+máscara de oxigênio
+bastão
+máscara cirúrgica
+coturno
+tamanco
+figurinha
+taça
+cinto de segurança
+máscara de mergulho
+beliche
+catapulta
+escrivaninha
+cálice
+Sandália
+Laço
+cadeira de praia
+árvore de natal
+lanterna
+Cabresto
+harpa
+Foguete
+Canudo
+coador
+Fogão a lenha
+estojo de maquiagem
+Parafina
+vela
+Régua
+Lápis-Lázuli
+esfregão
+aro
+desodorante
+Leiteira
+motor
+micro-ondas
+Guarda-sol
+Palito de fósforo
+Diário
+Tesoura
+Laquê
+Fruteira
+Rack
+Televisão
+Origami
+Barbeador
+Aparelho ortodôntico
+Ingresso
+Chapéu
+Focinheira
+Projétil
+Lança
+Furadeira
+Caderneta
+Piano
+lente de contato
+Lápis labial
+coleira
+Marreta
+Estojo
+Afiador de facas
+cassetete
+Carteira
+Carteiro
+Pisca-pisca
+Odre
+Tornozeleira
+martelo
+faca
+Pen drive
+aquecedor
+mala
+Maleta
+Baú
+cartucho de tinta
+parafuso
+Uniforme
+Medalha
+pistola
+echarpe
+carrinho
+estátua
+Gravata
+cd
+Estabilizador
+Nariz de palhaço
+Touca
+Esmalte
+fritadeira elétrica
+retrovisor
+Webcam
+cortador de grama
+escorredor de pratos
+lenço
+palito de dente
+pacote
+agogô
+Cortina
+rédea
+caneleira
+garrafa térmica
+fantasia
+mangueira
+cabide
+antena parabólica
+marionete
+Escapamento
+para-choque
+Colchonete
+blusa
+lápis de cor
+ioiô
+Colchão
+clipe
+Rastelo
+farda
+poltrona
+monitor
+zabumba
+banheira
+cadeado
+meia-calça
+placa
+Camisola
+Faqueiro
+Fones de ouvido
+Bandana
+corrente
+pente
+convite
+ventilador de teto
+ventilador
+jeans
+abridor de garrafa
+Revista
+Bilhete
+Garrafa pet
+cinto
+Forno elétrico
+Tela
+Torradeira
+banjo
+lancheira
+Pincel
+fax
+mola
+Notebook
+máquina fotográfica
+candelabro
+pergaminho
+rolha
+Aquário
