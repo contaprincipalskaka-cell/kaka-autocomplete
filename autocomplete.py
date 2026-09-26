@@ -1,13 +1,48 @@
 import tkinter as tk
-from pynput import keyboard, mouse
+from pynput import mouse, keyboard
 import pyperclip
 import threading
 import json
 import os
+import sys
 import time
 
-CONFIG_FILE = "config.json"
-WORDS_FILE = "palavras.txt"
+
+# ============================================================
+# ARQUIVOS
+# ============================================================
+
+def caminho_recurso(nome):
+    """
+    Funciona tanto rodando o .py quanto o .exe criado pelo PyInstaller.
+    """
+    if getattr(sys, "frozen", False):
+        base = sys._MEIPASS
+    else:
+        base = os.path.dirname(os.path.abspath(__file__))
+
+    return os.path.join(base, nome)
+
+
+def caminho_config():
+    """
+    Salva a configuração ao lado do EXE.
+    """
+    if getattr(sys, "frozen", False):
+        return os.path.join(
+            os.path.dirname(sys.executable),
+            "config.json"
+        )
+
+    return os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "config.json"
+    )
+
+
+WORDS_FILE = caminho_recurso("palavras.txt")
+CONFIG_FILE = caminho_config()
+
 
 # ============================================================
 # CONFIGURAÇÃO
@@ -18,44 +53,56 @@ config = {
     "y": None
 }
 
+
 if os.path.exists(CONFIG_FILE):
     try:
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             config.update(json.load(f))
-    except:
+    except Exception:
         pass
 
 
 # ============================================================
-# PALAVRAS
+# CARREGAR PALAVRAS
 # ============================================================
 
 def carregar_palavras():
+
     if not os.path.exists(WORDS_FILE):
         return []
 
-    with open(WORDS_FILE, "r", encoding="utf-8") as f:
-        palavras = [
-            linha.strip().lower()
-            for linha in f
-            if linha.strip()
-        ]
+    try:
+        with open(WORDS_FILE, "r", encoding="utf-8") as f:
 
-    return list(dict.fromkeys(palavras))
+            palavras = []
+
+            for linha in f:
+                palavra = linha.strip()
+
+                if palavra:
+                    palavras.append(palavra)
+
+            # Remove duplicadas mantendo a ordem
+            palavras = list(dict.fromkeys(palavras))
+
+            return palavras
+
+    except Exception as e:
+        print("Erro carregando palavras:", e)
+        return []
 
 
 palavras = carregar_palavras()
 
 
 # ============================================================
-# VARIÁVEIS
+# CONTROLES
 # ============================================================
-
-texto = ""
-gravando_posicao = False
 
 mouse_controller = mouse.Controller()
 keyboard_controller = keyboard.Controller()
+
+gravando_posicao = False
 
 
 # ============================================================
@@ -65,7 +112,7 @@ keyboard_controller = keyboard.Controller()
 root = tk.Tk()
 
 root.title("KAKA AUTOCOMPLETE")
-root.geometry("430x520")
+root.geometry("430x560")
 root.resizable(False, False)
 root.attributes("-topmost", True)
 
@@ -89,11 +136,11 @@ titulo.pack(pady=(15, 5))
 
 status = tk.Label(
     root,
-    text="Pronto para configurar.",
+    text="Pronto.",
     font=("Arial", 10)
 )
 
-status.pack(pady=5)
+status.pack(pady=3)
 
 
 # ============================================================
@@ -103,6 +150,9 @@ status.pack(pady=5)
 def gravar_posicao():
 
     global gravando_posicao
+
+    if gravando_posicao:
+        return
 
     gravando_posicao = True
 
@@ -120,10 +170,20 @@ def gravar_posicao():
             config["y"] = y
 
             try:
-                with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-                    json.dump(config, f, indent=4)
-            except:
-                pass
+                with open(
+                    CONFIG_FILE,
+                    "w",
+                    encoding="utf-8"
+                ) as f:
+
+                    json.dump(
+                        config,
+                        f,
+                        indent=4
+                    )
+
+            except Exception as e:
+                print("Erro salvando posição:", e)
 
             gravando_posicao = False
 
@@ -154,18 +214,49 @@ botao_gravar = tk.Button(
 botao_gravar.pack(
     fill="x",
     padx=25,
-    pady=10
+    pady=(8, 12)
 )
 
 
 # ============================================================
-# LISTA
+# CAMPO DE PALAVRA
+# ============================================================
+
+label_palavra = tk.Label(
+    root,
+    text="Digite a palavra:",
+    font=("Arial", 11, "bold"),
+    anchor="w"
+)
+
+label_palavra.pack(
+    fill="x",
+    padx=25
+)
+
+
+entrada = tk.Entry(
+    root,
+    font=("Arial", 18),
+    relief="solid",
+    bd=1
+)
+
+entrada.pack(
+    fill="x",
+    padx=25,
+    pady=(5, 10)
+)
+
+
+# ============================================================
+# LISTA DE SUGESTÕES
 # ============================================================
 
 lista = tk.Listbox(
     root,
     font=("Arial", 16),
-    height=15,
+    height=13,
     activestyle="none"
 )
 
@@ -173,7 +264,7 @@ lista.pack(
     fill="both",
     expand=True,
     padx=25,
-    pady=10
+    pady=(0, 10)
 )
 
 
@@ -181,100 +272,133 @@ lista.pack(
 # ATUALIZAR SUGESTÕES
 # ============================================================
 
-def atualizar_lista():
+def atualizar_lista(event=None):
+
+    prefixo = entrada.get().strip().lower()
 
     lista.delete(0, tk.END)
 
-    if not texto:
+    if not prefixo:
         return
-
-    prefixo = texto.lower()
 
     encontrados = []
 
     for palavra in palavras:
 
-        if palavra.startswith(prefixo):
+        if palavra.lower().startswith(prefixo):
 
             encontrados.append(palavra)
 
-            if len(encontrados) >= 20:
+            if len(encontrados) >= 30:
                 break
 
     for palavra in encontrados:
-        lista.insert(tk.END, palavra)
+        lista.insert(
+            tk.END,
+            palavra
+        )
 
-    if encontrados:
-        lista.selection_set(0)
 
-
-# ============================================================
-# LIMPAR PREFIXO
-# ============================================================
-
-def limpar():
-
-    global texto
-
-    texto = ""
-
-    root.after(
-        0,
-        atualizar_lista
-    )
+# Atualiza enquanto digita
+entrada.bind(
+    "<KeyRelease>",
+    atualizar_lista
+)
 
 
 # ============================================================
 # ENVIAR PALAVRA
 # ============================================================
 
-def enviar_palavra(palavra):
-
-    if config["x"] is None or config["y"] is None:
-
-        root.after(
-            0,
-            lambda: status.config(
-                text="Primeiro grave a posição!"
-            )
-        )
-
-        return
+def enviar_palavra(palavra, retorno_x, retorno_y):
 
     try:
 
-        # Copia a palavra inteira
+        # Verifica se existe posição gravada
+        if (
+            config["x"] is None
+            or config["y"] is None
+        ):
+
+            root.after(
+                0,
+                lambda: status.config(
+                    text="Primeiro grave a posição!"
+                )
+            )
+
+            return
+
+
+        # ----------------------------------------------------
+        # COPIAR PALAVRA
+        # ----------------------------------------------------
+
         pyperclip.copy(palavra)
 
-        time.sleep(0.01)
+        time.sleep(0.03)
 
-        # Move para o campo configurado
+
+        # ----------------------------------------------------
+        # IR PARA O CAMPO GRAVADO
+        # ----------------------------------------------------
+
         mouse_controller.position = (
             config["x"],
             config["y"]
         )
 
-        time.sleep(0.01)
+        time.sleep(0.05)
 
-        # Clica no campo
+
+        # ----------------------------------------------------
+        # CLICAR NO CAMPO
+        # ----------------------------------------------------
+
         mouse_controller.click(
             mouse.Button.left
         )
 
-        time.sleep(0.01)
+        time.sleep(0.05)
 
-        # Cola
+
+        # ----------------------------------------------------
+        # COLAR
+        # ----------------------------------------------------
+
         with keyboard_controller.pressed(
             keyboard.Key.ctrl
         ):
+
             keyboard_controller.press("v")
 
-        time.sleep(0.01)
+        time.sleep(0.05)
 
-        # Envia
+
+        # ----------------------------------------------------
+        # ENTER
+        # ----------------------------------------------------
+
         keyboard_controller.press(
             keyboard.Key.enter
         )
+
+        time.sleep(0.08)
+
+
+        # ----------------------------------------------------
+        # VOLTAR PARA ONDE CLICOU NA PALAVRA
+        # ----------------------------------------------------
+
+        mouse_controller.position = (
+            retorno_x,
+            retorno_y
+        )
+
+
+        # ----------------------------------------------------
+        # STATUS
+        # ----------------------------------------------------
 
         root.after(
             0,
@@ -283,9 +407,20 @@ def enviar_palavra(palavra):
             )
         )
 
+
     except Exception as e:
 
-        print("Erro:", e)
+        print(
+            "Erro enviando palavra:",
+            e
+        )
+
+        root.after(
+            0,
+            lambda: status.config(
+                text="Erro ao enviar palavra."
+            )
+        )
 
 
 # ============================================================
@@ -303,15 +438,48 @@ def selecionar(event=None):
         selecao[0]
     )
 
+
+    # --------------------------------------------------------
+    # PEGA A POSIÇÃO EXATA DO MOUSE
+    # --------------------------------------------------------
+
+    posicao_retorno = mouse_controller.position
+
+    retorno_x = posicao_retorno[0]
+    retorno_y = posicao_retorno[1]
+
+
+    # --------------------------------------------------------
+    # LIMPA A CAIXA
+    # --------------------------------------------------------
+
+    entrada.delete(
+        0,
+        tk.END
+    )
+
+    lista.delete(
+        0,
+        tk.END
+    )
+
+
+    # --------------------------------------------------------
+    # ENVIA EM OUTRA THREAD
+    # --------------------------------------------------------
+
     threading.Thread(
         target=enviar_palavra,
-        args=(palavra,),
+        args=(
+            palavra,
+            retorno_x,
+            retorno_y
+        ),
         daemon=True
     ).start()
 
-    limpar()
 
-
+# Clique na palavra
 lista.bind(
     "<ButtonRelease-1>",
     selecionar
@@ -319,79 +487,64 @@ lista.bind(
 
 
 # ============================================================
-# TECLADO GLOBAL
+# ENTER TAMBÉM ENVIA A PALAVRA SELECIONADA
 # ============================================================
 
-def tecla_pressionada(key):
+def enviar_com_enter(event=None):
 
-    global texto
+    selecao = lista.curselection()
 
-    try:
+    if selecao:
 
-        # Letras e números
-        if hasattr(key, "char") and key.char:
+        selecionar()
 
-            caractere = key.char
-
-            if caractere.isalpha() or caractere.isdigit():
-
-                texto += caractere.lower()
-
-                root.after(
-                    0,
-                    atualizar_lista
-                )
-
-                return
-
-        # Backspace
-        if key == keyboard.Key.backspace:
-
-            if texto:
-
-                texto = texto[:-1]
-
-                root.after(
-                    0,
-                    atualizar_lista
-                )
-
-            return
-
-        # Espaço
-        if key == keyboard.Key.space:
-
-            limpar()
-
-            return
-
-        # Enter
-        if key == keyboard.Key.enter:
-
-            limpar()
-
-            return
-
-        # ESC
-        if key == keyboard.Key.esc:
-
-            limpar()
-
-            return
-
-    except:
-        pass
+        return "break"
 
 
-# ============================================================
-# LISTENER GLOBAL
-# ============================================================
-
-keyboard_listener = keyboard.Listener(
-    on_press=tecla_pressionada
+lista.bind(
+    "<Return>",
+    enviar_com_enter
 )
 
-keyboard_listener.start()
+
+# ============================================================
+# ESC LIMPA A PESQUISA
+# ============================================================
+
+def limpar(event=None):
+
+    entrada.delete(
+        0,
+        tk.END
+    )
+
+    lista.delete(
+        0,
+        tk.END
+    )
+
+
+entrada.bind(
+    "<Escape>",
+    limpar
+)
+
+
+# ============================================================
+# INFORMAÇÃO DE PALAVRAS
+# ============================================================
+
+if len(palavras) > 0:
+
+    status.config(
+        text=f"{len(palavras)} palavras carregadas."
+    )
+
+else:
+
+    status.config(
+        text="Nenhuma palavra carregada!"
+    )
 
 
 # ============================================================
@@ -399,11 +552,6 @@ keyboard_listener.start()
 # ============================================================
 
 def fechar():
-
-    try:
-        keyboard_listener.stop()
-    except:
-        pass
 
     root.destroy()
 
@@ -415,25 +563,32 @@ root.protocol(
 
 
 # ============================================================
-# STATUS INICIAL
-# ============================================================
-
-if config["x"] is not None:
-
-    status.config(
-        text=f"Posição salva: {config['x']} , {config['y']}"
-    )
-
-else:
-
-    status.config(
-        text="Clique em GRAVAR POSIÇÃO para começar."
-    )
-
-
-# ============================================================
 # INICIAR
 # ============================================================
 
-root.mainloop()	
+entrada.focus_set()
 
+root.mainloop()
+
+E tem uma mudança importante no "build.yml"
+
+Agora vamos mandar o "palavras.txt" para dentro do ".exe" durante a compilação. Assim você não precisa ficar levando o arquivo separado.
+
+No "build.yml", troque somente a parte de Criar EXE para:
+
+        - name: Criar EXE
+          run: |
+            pyinstaller --onefile --windowed --add-data "palavras.txt;." --name KAKA_AUTOCOMPLETE autocomplete.py
+
+O restante do "build.yml" pode continuar igual.
+
+Depois:
+
+cd ~/kaka-autocomplete
+git add autocomplete.py .github/workflows/build.yml
+git commit -m "Nova interface de autocomplete"
+git push
+
+Aí o GitHub vai gerar o novo ".exe".
+
+Essa versão não depende mais de capturar o teclado globalmente. Você escreve o prefixo na própria caixa "Palavra", e as sugestões vão atualizando instantaneamente.
