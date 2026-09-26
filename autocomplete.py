@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import time
+import unicodedata
 
 
 # ============================================================
@@ -57,7 +58,7 @@ config = {
 if os.path.exists(CONFIG_FILE):
     try:
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            config.update(json.load(f))
+        config.update(json.load(f))
     except Exception:
         pass
 
@@ -93,6 +94,19 @@ def carregar_palavras():
 
 
 palavras = carregar_palavras()
+
+
+# ============================================================
+# REMOVER ACENTOS PARA PESQUISA
+# ============================================================
+
+def remover_acentos(texto):
+
+    return "".join(
+        c
+        for c in unicodedata.normalize("NFD", texto)
+        if unicodedata.category(c) != "Mn"
+    )
 
 
 # ============================================================
@@ -281,11 +295,19 @@ def atualizar_lista(event=None):
     if not prefixo:
         return
 
+    # Remove os acentos somente da pesquisa
+    prefixo_busca = remover_acentos(prefixo)
+
     encontrados = []
 
     for palavra in palavras:
 
-        if palavra.lower().startswith(prefixo):
+        # Mantém a palavra original com seus acentos
+        palavra_busca = remover_acentos(
+            palavra.lower()
+        )
+
+        if palavra_busca.startswith(prefixo_busca):
 
             encontrados.append(palavra)
 
@@ -293,6 +315,7 @@ def atualizar_lista(event=None):
                 break
 
     for palavra in encontrados:
+
         lista.insert(
             tk.END,
             palavra
@@ -310,7 +333,11 @@ entrada.bind(
 # ENVIAR PALAVRA
 # ============================================================
 
-def enviar_palavra(palavra, retorno_x, retorno_y):
+def enviar_palavra(
+    palavra,
+    retorno_x,
+    retorno_y
+):
 
     try:
 
@@ -334,7 +361,9 @@ def enviar_palavra(palavra, retorno_x, retorno_y):
         # COPIAR PALAVRA
         # ----------------------------------------------------
 
-        pyperclip.copy(palavra)
+        pyperclip.copy(
+            palavra
+        )
 
         time.sleep(0.03)
 
@@ -370,7 +399,9 @@ def enviar_palavra(palavra, retorno_x, retorno_y):
             keyboard.Key.ctrl
         ):
 
-            keyboard_controller.press("v")
+            keyboard_controller.press(
+                "v"
+            )
 
         time.sleep(0.05)
 
@@ -387,7 +418,7 @@ def enviar_palavra(palavra, retorno_x, retorno_y):
 
 
         # ----------------------------------------------------
-        # VOLTAR PARA ONDE CLICOU NA PALAVRA
+        # VOLTAR PARA ONDE CLICOU
         # ----------------------------------------------------
 
         mouse_controller.position = (
@@ -443,14 +474,16 @@ def selecionar(event=None):
     # PEGA A POSIÇÃO EXATA DO MOUSE
     # --------------------------------------------------------
 
-    posicao_retorno = mouse_controller.position
+    posicao_retorno = (
+        mouse_controller.position
+    )
 
     retorno_x = posicao_retorno[0]
     retorno_y = posicao_retorno[1]
 
 
     # --------------------------------------------------------
-    # LIMPA A CAIXA
+    # LIMPA A PESQUISA
     # --------------------------------------------------------
 
     entrada.delete(
@@ -487,7 +520,7 @@ lista.bind(
 
 
 # ============================================================
-# ENTER TAMBÉM ENVIA A PALAVRA SELECIONADA
+# ENTER TAMBÉM ENVIA
 # ============================================================
 
 def enviar_com_enter(event=None):
@@ -568,4 +601,5 @@ root.protocol(
 
 entrada.focus_set()
 
-root.mainloop()
+root.mainloop()	
+
